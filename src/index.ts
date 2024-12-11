@@ -198,11 +198,47 @@ class LinearServer {
             required: ["issueId"],
           },
         },
+        {
+          name: "list_issues_by_label",
+          description: "List all issues with a specific label",
+          inputSchema: {
+            type: "object",
+            properties: {
+              labelName: {
+                type: "string",
+                description: "Name of the label to filter issues by",
+              },
+            },
+            required: ["labelName"],
+          },
+        },
       ],
     }));
 
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       try {
+        if (request.params.name === "list_issues_by_label") {
+          const { labelName } = request.params.arguments as {
+            labelName: string;
+          };
+
+          const issues = await this.linearClient.issues({
+            filter: {
+              labels: { name: { eq: labelName } },
+            },
+          });
+
+          const issueList = await issues.nodes;
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify(issueList, null, 2),
+              },
+            ],
+          };
+        }
+
         if (request.params.name === "create_issue") {
           const { title, description, teamId, priority } = request.params
             .arguments as {
