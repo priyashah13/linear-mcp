@@ -165,6 +165,15 @@ class LinearServer {
           },
         },
         {
+          name: "read_team_ids",
+          description: "Read team ids",
+          inputSchema: {
+            type: "object",
+            properties: {},
+            required: [],
+          },
+        },
+        {
           name: "update_issue",
           description: "Update an existing issue in Linear",
           inputSchema: {
@@ -240,6 +249,13 @@ class LinearServer {
                 text: `Updated issue: ${(await issue.issue)?.url}`,
               },
             ],
+          };
+        }
+
+        if (request.params.name === "read_team_ids") {
+          const teams = await this.linearClient.teams();
+          return {
+            content: [{ type: "text", text: JSON.stringify(teams.nodes) }],
           };
         }
 
