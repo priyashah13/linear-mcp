@@ -38,9 +38,8 @@ class LinearServer {
     );
 
     this.linearClient = new LinearClient({
-      apiKey: "063640b41a34c7e665c67494f65eb8d3",
-      accessToken:
-        "lin_oauth_a72a1d8b87c6734e64d883a56672c98d6941ec9d059a55ae6ac7be7fea9a8d3e",
+      apiKey: process.env.LINEAR_API_KEY!,
+      accessToken: process.env.LINEAR_ACCESS_TOKEN!,
     });
 
     this.setupHandlers();
