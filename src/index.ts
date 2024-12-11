@@ -7,6 +7,7 @@ import {
   CallToolRequestSchema,
   ErrorCode,
   McpError,
+  ListResourceTemplatesRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { LinearClient } from "@linear/sdk";
 import dotenv from "dotenv";
@@ -36,7 +37,11 @@ class LinearServer {
       }
     );
 
-    this.linearClient = new LinearClient({ apiKey: API_KEY });
+    this.linearClient = new LinearClient({
+      apiKey: "063640b41a34c7e665c67494f65eb8d3",
+      accessToken:
+        "lin_oauth_a72a1d8b87c6734e64d883a56672c98d6941ec9d059a55ae6ac7be7fea9a8d3e",
+    });
 
     this.setupHandlers();
   }
@@ -60,6 +65,21 @@ class LinearServer {
       ],
     }));
 
+    // Add this handler if you want to support resource templates
+    this.server.setRequestHandler(
+      ListResourceTemplatesRequestSchema,
+      async () => ({
+        resourceTemplates: [
+          {
+            uriTemplate: "linear://issues/{issueId}",
+            name: "Single Issue",
+            mimeType: "application/json",
+            description: "Get a specific issue by ID",
+          },
+        ],
+      })
+    );
+
     this.server.setRequestHandler(
       ReadResourceRequestSchema,
       async (request) => {
@@ -78,6 +98,14 @@ class LinearServer {
           } else if (uri === "linear://teams") {
             const teams = await this.linearClient.teams();
             content = await teams.nodes;
+          } // Handle template resource
+          else if (uri.startsWith("linear://issues/")) {
+            const issueId = uri.replace("linear://issues/", "");
+            // Skip the "active" case we handled above
+            if (issueId !== "active") {
+              const issue = await this.linearClient.issue(issueId);
+              content = await issue;
+            }
           } else {
             throw new McpError(
               ErrorCode.InvalidRequest,
